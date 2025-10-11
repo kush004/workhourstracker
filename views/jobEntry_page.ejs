@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    body { background-color: #f8f9fa; }
+    .card { border-radius: 12px; margin-bottom: 2rem; }
+    .toggle-btn { border-radius: 50%; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; }
+    .left-card { max-width: 500px; margin-left: 0; }
+  </style>
+  <script>
+  // Auto-hide success/error messages after 3 seconds
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(el => el.remove());
+  }, 3000);
+
+  // Also hide when user clicks anywhere on the page
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.alert').forEach(el => el.remove());
+  });
+</script>
+
+</head>
+<body>
+  <%- include('home_page', { username: username }) %>
+
+  <div class="container mt-5">
+
+    <!-- Add Job Entry -->
+    <div class="card left-card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <h3 class="card-title text-primary mb-0">Add New Job</h3>
+          <button class="btn btn-sm btn-outline-primary toggle-btn"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#jobForm"
+                  aria-expanded="false"
+                  aria-controls="jobForm"
+                  id="toggleJob">
+            <i class="bi bi-plus-lg"></i>
+          </button>
+        </div>
+
+        <% if (typeof jobError !== 'undefined' && jobError) { %>
+          <div class="alert alert-danger mt-3"><%= jobError %></div>
+        <% } %>
+        <% if (typeof jobSuccess !== 'undefined' && jobSuccess) { %>
+          <div class="alert alert-success mt-3"><%= jobSuccess %></div>
+        <% } %>
+
+        <div class="collapse mt-3" id="jobForm">
+          <form action="/jobentry" method="POST">
+            <div class="mb-3">
+              <label for="jobName" class="form-label">Job Name</label>
+              <input type="text" class="form-control" id="jobName" name="jobName" placeholder="Enter job name" required>
+            </div>
+            <div class="mb-3">
+              <label for="date" class="form-label">Joining Date</label>
+              <input type="date" class="form-control" id="date" name="date" required>
+            </div>
+            <div class="mb-3">
+              <label for="salaryType" class="form-label">Salary Type</label>
+              <select class="form-select" id="salaryType" name="salaryType" required>
+                <option value="" selected disabled>Select type</option>
+                <option value="Hourly">Hourly</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="salaryAmount" class="form-label">Salary Amount</label>
+              <input type="number" class="form-control" id="salaryAmount" name="salaryAmount" placeholder="Enter salary" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Add Job</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Job Entry -->
+    <div class="card left-card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <h3 class="card-title text-primary mb-0">Daily Job Entry</h3>
+          <button class="btn btn-sm btn-outline-primary toggle-btn"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#dailyJobForm"
+                  aria-expanded="false"
+                  aria-controls="dailyJobForm"
+                  id="toggleDaily">
+            <i class="bi bi-plus-lg"></i>
+          </button>
+        </div>
+
+        <% if (typeof dailyError !== 'undefined' && dailyError) { %>
+          <div class="alert alert-danger mt-3"><%= dailyError %></div>
+        <% } %>
+        <% if (typeof dailySuccess !== 'undefined' && dailySuccess) { %>
+          <div class="alert alert-success mt-3"><%= dailySuccess %></div>
+        <% } %>
+
+        <div class="collapse mt-3" id="dailyJobForm">
+          <form action="/dailyjob" method="POST">
+            <div class="mb-3">
+              <label for="jobNameSelect" class="form-label">Job Name</label>
+              <select class="form-select" id="jobNameSelect" name="jobName" required>
+                <option value="" selected disabled>Select job</option>
+                <% if (jobs && jobs.length) { %>
+                  <% jobs.forEach(function(job) { %>
+                    <option value="<%= job.jobName %>"><%= job.jobName %></option>
+                  <% }); %>
+                <% } %>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="todayDate" class="form-label">Date</label>
+              <input type="date" class="form-control" id="todayDate" name="todayDate" required>
+            </div>
+
+            <div class="row">
+              <div class="mb-3 col-md-6">
+                <label for="startTime" class="form-label">Start Time</label>
+                <input type="time" class="form-control" id="startTime" name="startTime" required>
+              </div>
+              <div class="mb-3 col-md-6">
+                <label for="endTime" class="form-label">End Time</label>
+                <input type="time" class="form-control" id="endTime" name="endTime" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="totalHours" class="form-label">Total Hours</label>
+              <input type="text" class="form-control" id="totalHours" name="totalHours" readonly>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Save Daily Entry</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Toggle icons
+    const toggleJob = document.getElementById('toggleJob');
+    const jobForm = document.getElementById('jobForm');
+    jobForm.addEventListener('show.bs.collapse', () => toggleJob.innerHTML = '<i class="bi bi-dash-lg"></i>');
+    jobForm.addEventListener('hide.bs.collapse', () => toggleJob.innerHTML = '<i class="bi bi-plus-lg"></i>');
+
+    const toggleDaily = document.getElementById('toggleDaily');
+    const dailyJobForm = document.getElementById('dailyJobForm');
+    dailyJobForm.addEventListener('show.bs.collapse', () => toggleDaily.innerHTML = '<i class="bi bi-dash-lg"></i>');
+    dailyJobForm.addEventListener('hide.bs.collapse', () => toggleDaily.innerHTML = '<i class="bi bi-plus-lg"></i>');
+
+    // Set today's date automatically
+    document.addEventListener("DOMContentLoaded", () => {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById("todayDate").value = `${yyyy}-${mm}-${dd}`;
+    });
+
+    // Auto-calculate total hours
+    function calculateHours() {
+      const start = document.getElementById("startTime").value;
+      const end = document.getElementById("endTime").value;
+      if (start && end) {
+        const startDate = new Date(`1970-01-01T${start}:00`);
+        const endDate = new Date(`1970-01-01T${end}:00`);
+        let diff = (endDate - startDate) / (1000 * 60 * 60);
+        if (diff < 0) diff += 24; // overnight shift
+        document.getElementById("totalHours").value = diff.toFixed(2);
+      }
+    }
+    document.getElementById("startTime").addEventListener("change", calculateHours);
+    document.getElementById("endTime").addEventListener("change", calculateHours);
+  </script>
+     <%- include('footer') %>
+</body>
+</html>

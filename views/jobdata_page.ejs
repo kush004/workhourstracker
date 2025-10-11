@@ -1,0 +1,138 @@
+<%- include('home_page', { username: username }) %>
+
+<div class="container mt-5">
+  <h2>Your Jobs</h2>
+  <% if (!jobs || jobs.length === 0) { %>
+    <p>No jobs added yet.</p>
+  <% } else { %>
+    <table class="table table-striped mt-3">
+      <thead>
+        <tr>
+          <th>Job Name</th>
+          <th>Date</th>
+          <th>Salary Type</th>
+          <th>Salary</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% jobs.forEach(job => { %>
+          <tr>
+            <td><%= job.jobName %></td>
+            <td><%= job.date %></td>
+            <td><%= job.salaryType %></td>
+            <td><%= job.salaryAmount %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<div class="container mt-5">
+  <h2>Daily Jobs</h2>
+  <% if (!daily_jobs || daily_jobs.length === 0) { %>
+    <p>No daily jobs added yet.</p>
+  <% } else { %>
+    <table class="table table-striped mt-3">
+      <thead>
+        <tr>
+          <th>Job Name</th>
+          <th>Date</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+          <th>Total Hours</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% daily_jobs.forEach(job => { %>
+          <tr>
+            <td><%= job.jobName %></td>
+            <td><%= job.date %></td>
+            <td><%= job.startTime %></td>
+            <td><%= job.endTime %></td>
+            <td><%= job.totalHours %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<!-- Bar Chart: Monthly Hours per Job
+<div class="container mt-5">
+  <h2>Monthly Hours per Job</h2>
+  <canvas id="jobHoursChart" width="800" height="200"></canvas>
+</div> -->
+<div class="container mt-5">
+  <div class="row">
+    <!-- Bar Chart: Monthly Hours per Job (Left) -->
+    <div class="col-md-6" style="max-width: 500px;">
+      <h2>Monthly Hours per Job</h2>
+      <canvas id="jobHoursChart" height="250"></canvas>
+    </div>
+
+    <!-- Pie Chart: Total Days per Job (Right) -->
+    <div class="col-md-6" style="max-width: 400px;">
+      <h2>Total Work Days per Job</h2>
+      <canvas id="jobDaysPieChart" height="250"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // ===== Bar Chart =====
+  const chartData = JSON.parse('<%- chartData %>');
+
+  const months = [...new Set(Object.values(chartData).flatMap(obj => Object.keys(obj)))];
+  const jobNames = Object.keys(chartData);
+
+  const datasets = jobNames.map((job, idx) => {
+    const data = months.map(m => chartData[job][m] || 0);
+    return {
+      label: job,
+      data: data,
+      backgroundColor: `hsl(${idx * 50}, 70%, 60%)`
+    };
+  });
+
+  const ctxBar = document.getElementById("jobHoursChart").getContext("2d");
+  new Chart(ctxBar, {
+    type: "bar",
+    data: {
+      labels: months,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: "top" } },
+      scales: { y: { beginAtZero: true } },
+      // thinner bars
+      barPercentage: 0.4,
+      categoryPercentage: 0.6
+    }
+  });
+
+  // ===== Pie Chart =====
+  const totalDaysData = JSON.parse('<%- totalDaysData %>');
+  const labelsPie = Object.keys(totalDaysData);
+  const dataPie = Object.values(totalDaysData);
+
+  const ctxPie = document.getElementById('jobDaysPieChart').getContext('2d');
+  new Chart(ctxPie, {
+    type: 'pie',
+    data: {
+      labels: labelsPie,
+      datasets: [{
+        label: 'Total Days',
+        data: dataPie,
+        backgroundColor: labelsPie.map((_, idx) => `hsl(${idx * 60}, 70%, 60%)`)
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+</script>
+   <%- include('footer') %>

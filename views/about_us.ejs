@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>About Us | Work Hours Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .about-section {
+      background: linear-gradient(135deg, #007bff, #00b4d8);
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+      border-radius:  50px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .about-section h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .about-section p {
+      font-size: 1.1rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .info-section {
+      padding: 60px 20px;
+    }
+
+    .info-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      padding: 30px;
+      text-align: center;
+      height: 100%;
+    }
+
+    .info-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .info-card i {
+      font-size: 40px;
+      color: #007bff;
+      margin-bottom: 15px;
+    }
+
+    .info-card h4 {
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .footer {
+      background-color: #0d6efd;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+   <%- include('home_page', { username: username, showWelcome : false, }) %>
+
+  <!-- About Hero Section -->
+  <section class="about-section">
+    <h1>About Work Hours Tracker</h1>
+    <p>Our mission is to make it easier for professionals and freelancers to track their daily working hours, manage multiple jobs, and understand their monthly productivity — all in one clean dashboard.</p>
+  </section>
+
+  <!-- Info Section -->
+  <section class="info-section container">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="info-card">
+          <i class="bi bi-clock-history"></i>
+          <h4>Track Your Time</h4>
+          <p>Log your daily work hours with precision. Our smart tools calculate total time automatically to help you stay accurate.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="info-card">
+          <i class="bi bi-bar-chart-line"></i>
+          <h4>Visualize Progress</h4>
+          <p>View interactive bar and pie charts that show how your time is spent across multiple jobs during the month.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="info-card">
+          <i class="bi bi-person-workspace"></i>
+          <h4>Multiple Jobs</h4>
+          <p>Easily manage and switch between different job profiles — track working hours, salary type, and performance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+   <%- include('footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
