@@ -15,7 +15,7 @@ await client.connect();
 const dbName  = client.db('workhoursDB');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'mysecret';
 
-// MongoDB setup for compass
+// MongoDB setup for compassjhbunygb
 // const dbName = "workhoursDB";
 // const url = "mongodb://localhost:27017";
 // const client = new MongoClient(url);
