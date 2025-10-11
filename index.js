@@ -1,3 +1,4 @@
+// index.js
 import express from 'express';
 import session from 'express-session';
 import { MongoClient } from 'mongodb';
@@ -7,34 +8,25 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-// const port = process.env.PORT || 3200;
-
-const client = new MongoClient(process.env.MONGO_URI);
-//for hosting
-await client.connect();
-const dbName  = client.db('workhoursDB');
+const PORT = process.env.PORT || 3000;
 const SESSION_SECRET = process.env.SESSION_SECRET || 'mysecret';
 
-// MongoDB setup for compassjhbunygb
-// const dbName = "workhoursDB";
-// const url = "mongodb://localhost:27017";
-// const client = new MongoClient(url);
+// ===== MongoDB Setup =====
+const client = new MongoClient(process.env.MONGO_URI, { useUnifiedTopology: true });
+await client.connect();
+const db = client.db('workhoursDB');
 
-// Middleware
+const usersCollection = db.collection('users');
+const jobsCollection = db.collection('jobs');
+const dailyJobsCollection = db.collection('daily_jobs');
+
+console.log('✅ MongoDB connected');
+
+// ===== Middleware =====
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(session({ secret: SESSION_SECRET, resave: false, saveUninitialized: true }));
-
-// Connect to MongoDB once
-let usersCollection;
-async function connectDB() {
-  await client.connect();
-  const db = client.db(dbName);
-  usersCollection = db.collection('users');
-  console.log('✅ MongoDB connected');
-}
-connectDB();
 
 // ===== ROUTES =====
 
@@ -47,6 +39,7 @@ app.get('/', (req, res) => {
   }
 });
 
+// About Us page
 app.get('/about_us', (req, res) => {
   if (req.session.user) {
     res.render('about_us', { username: req.session.user });
@@ -60,6 +53,7 @@ app.get('/register', (req, res) => res.render('register', { error: null }));
 
 app.post('/register', async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
+
   if (!username || !email || !password || !confirmPassword) {
     return res.render('register', { error: "All fields are required!" });
   }
@@ -98,12 +92,9 @@ app.get('/logout', (req, res) => {
 });
 
 // ===== JOB ENTRY PAGE =====
-// GET Job Entry Page
 app.get("/jobentry", async (req, res) => {
   if (!req.session.user) return res.redirect("/login");
 
-  const db = client.db(dbName);
-  const jobsCollection = db.collection("jobs");
   const jobs = await jobsCollection.find({ username: req.session.user }).toArray();
 
   res.render("jobEntry_page", {
@@ -116,15 +107,11 @@ app.get("/jobentry", async (req, res) => {
   });
 });
 
-
 // POST new job
 app.post("/jobentry", async (req, res) => {
   if (!req.session.user) return res.redirect("/login");
 
   const { jobName, date, salaryType, salaryAmount } = req.body;
-  const db = client.db(dbName);
-  const jobsCollection = db.collection("jobs");
-
   const jobs = await jobsCollection.find({ username: req.session.user }).toArray();
 
   // Validation
@@ -151,10 +138,9 @@ app.post("/jobentry", async (req, res) => {
     });
   }
 
-  // Insert new job
   await jobsCollection.insertOne({
     username: req.session.user,
-    jobName,
+    jobName: jobName.trim(),
     date,
     salaryType,
     salaryAmount: Number(salaryAmount),
@@ -167,26 +153,20 @@ app.post("/jobentry", async (req, res) => {
     username: req.session.user,
     jobError: null,
     jobSuccess: "Job added successfully!",
-    dailyError: null, 
+    dailyError: null,
     dailySuccess: null,
     jobs: updatedJobs
   });
 });
 
-
-// POST daily job entry
 // POST daily job entry
 app.post("/dailyjob", async (req, res) => {
   if (!req.session.user) return res.redirect("/login");
 
   const { jobName, todayDate, startTime, endTime, totalHours } = req.body;
-  const db = client.db(dbName);
-  const jobsCollection = db.collection("jobs");
-  const dailyJobs = db.collection("daily_jobs");
-
   const jobs = await jobsCollection.find({ username: req.session.user }).toArray();
 
-  // Validation: all fields required
+  // Validation
   if (!jobName || !todayDate || !startTime || !endTime || !totalHours) {
     return res.render("jobEntry_page", {
       username: req.session.user,
@@ -198,13 +178,8 @@ app.post("/dailyjob", async (req, res) => {
     });
   }
 
-  // 🕒 Check if the entered date is today's date
-  const enteredDate = new Date(todayDate);
-  const today = new Date();
-
-  // Convert both to YYYY-MM-DD (ignore time part)
-  const enteredDateStr = enteredDate.toISOString().split("T")[0];
-  const todayStr = today.toISOString().split("T")[0];
+  const enteredDateStr = new Date(todayDate).toISOString().split("T")[0];
+  const todayStr = new Date().toISOString().split("T")[0];
 
   if (enteredDateStr !== todayStr) {
     return res.render("jobEntry_page", {
@@ -217,8 +192,7 @@ app.post("/dailyjob", async (req, res) => {
     });
   }
 
-  // 🧠 Check if user already added same job for same date
-  const existingEntry = await dailyJobs.findOne({
+  const existingEntry = await dailyJobsCollection.findOne({
     username: req.session.user,
     jobName,
     date: todayDate
@@ -235,8 +209,7 @@ app.post("/dailyjob", async (req, res) => {
     });
   }
 
-  // ✅ Save the job entry if all good
-  await dailyJobs.insertOne({
+  await dailyJobsCollection.insertOne({
     username: req.session.user,
     jobName,
     date: todayDate,
@@ -256,40 +229,30 @@ app.post("/dailyjob", async (req, res) => {
   });
 });
 
-
-// Show jobs + daily jobs in one page
+// Job Data + Charts
 app.get("/JobData", async (req, res) => {
   if (!req.session.user) return res.redirect("/login");
 
-  const db = client.db(dbName);
-  const jobsCollection = db.collection("jobs");
-  const dailyJobsCollection = db.collection("daily_jobs");
-
-  // Get jobs
   const userJobs = await jobsCollection.find({ username: req.session.user }).toArray();
   const userDailyJobs = await dailyJobsCollection.find({ username: req.session.user }).toArray();
 
-  // ==== Bar Chart: Monthly Hours per Job ====
+  // Bar Chart: Monthly Hours per Job
   let jobHours = {};
   userDailyJobs.forEach(job => {
-    const date = new Date(job.date);
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const monthKey = `${new Date(job.date).getFullYear()}-${String(new Date(job.date).getMonth() + 1).padStart(2, "0")}`;
     if (!jobHours[job.jobName]) jobHours[job.jobName] = {};
-    if (!jobHours[job.jobName][monthKey]) jobHours[job.jobName][monthKey] = 0;
-    jobHours[job.jobName][monthKey] += job.totalHours;
+    jobHours[job.jobName][monthKey] = (jobHours[job.jobName][monthKey] || 0) + job.totalHours;
   });
 
-  // ==== Pie Chart: Total Days per Job (this month) ====
+  // Pie Chart: Total Days per Job (this month)
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
-
   let totalDaysData = {};
   userDailyJobs.forEach(job => {
     const date = new Date(job.date);
     if (date.getFullYear() === currentYear && date.getMonth() + 1 === currentMonth) {
-      if (!totalDaysData[job.jobName]) totalDaysData[job.jobName] = 0;
-      totalDaysData[job.jobName] += 1; // count day
+      totalDaysData[job.jobName] = (totalDaysData[job.jobName] || 0) + 1;
     }
   });
 
@@ -302,6 +265,5 @@ app.get("/JobData", async (req, res) => {
   });
 });
 
-
-// Start server
-// app.listen(port, () => console.log(`🚀 Server running on http://localhost:${port}`));
+// ===== Start Server =====
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
