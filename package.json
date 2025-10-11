@@ -1,18 +1,17 @@
 {
-  "name": "my-work-hours",
+  "name": "work-hours-tracker",
   "version": "1.0.0",
+  "description": "Work Hours Tracker app with daily job entries and charts",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["work-hours", "tracker", "node", "express", "mongodb"],
+  "author": "Your Name",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
@@ -20,6 +19,9 @@
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
-    "mongoose": "^8.19.0"
+    "mongodb": "^6.12.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }
