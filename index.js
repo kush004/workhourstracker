@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import favicon from "serve-favicon";
 
 dotenv.config();
 const app = express();
@@ -15,10 +16,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public",)));
+
 
 // ----- Middleware -----
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
+
+app.use(favicon(path.join(__dirname, "public", "favicone", "work_hours_tracker.png")));
+
 app.use(express.json());
 app.use(
   session({

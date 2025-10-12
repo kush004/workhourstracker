@@ -1,0 +1,14 @@
+{
+  "name": "My Work Hours",
+  "short_name": "WorkHours",
+  "icons": [
+    {
+      "src": "/favicone/work_hours_tracker.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0d6efd"
+}
