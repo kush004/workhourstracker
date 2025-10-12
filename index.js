@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-// const port = process.env.PORT || 3200;
+const port = process.env.PORT;
   
 const client = new MongoClient(process.env.MONGO_URI);
 //for hosting
@@ -304,4 +304,4 @@ app.get("/JobData", async (req, res) => {
 
 
 // Start server
-// app.listen(port, () => console.log(`🚀 Server running on http://localhost:${port}`));
+app.listen(port, () => console.log(`🚀 Server running on http://localhost:${port}`));
