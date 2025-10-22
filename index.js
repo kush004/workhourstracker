@@ -37,7 +37,7 @@ let usersCollection, jobsCollection, dailyJobsCollection;
 async function connectDB() {
   try {
     await client.connect();
-    const db = client.db(process.env.DB_NAME || "workhoursdb");
+    const db = client.db(process.env.DB_NAME || "workhourstracker");
     usersCollection = db.collection("users");
     jobsCollection = db.collection("jobs");
     dailyJobsCollection = db.collection("daily_jobs");
