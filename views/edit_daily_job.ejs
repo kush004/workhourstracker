@@ -1,0 +1,57 @@
+<%- include('home_page', { username: username }) %>
+<div  class="container mt-5" style="max-width: 600px;">
+<h2>Edit daily Job data</h2>
+<form  action="/update-daily-job" method="POST">
+  <input type="hidden" name="dailyJobId" value="<%= job._id %>">
+
+  <div class="mb-3">
+    <label for="dailyJobName">Job Name</label>
+    <input type="text" id="dailyJobName" name="jobName" class="form-control" value="<%= job.jobName %>" required>
+  </div>
+
+  <div class="mb-3">
+    <label for="dailyDate">Date</label>
+    <input type="date" id="dailyDate" name="date" class="form-control" value="<%= job.date %>" required>
+  </div>
+
+  <div class="row">
+    <div class="mb-3 col-md-6">
+      <label for="dailyStartTime">Start Time</label>
+      <input type="time" id="dailyStartTime" name="startTime" class="form-control" value="<%= job.startTime %>" required>
+    </div>
+    <div class="mb-3 col-md-6">
+      <label for="dailyEndTime">End Time</label>
+      <input type="time" id="dailyEndTime" name="endTime" class="form-control" value="<%= job.endTime %>" required>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="dailyTotalHours">Total Hours</label>
+    <input type="text" id="dailyTotalHours" name="totalHours" class="form-control" value="<%= job.totalHours %>" readonly>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Update</button>
+  <a href="/JobData" class="btn btn-secondary">Cancel</a>
+</form>
+</div>
+
+
+<script>
+  function calculateDailyHours() {
+    const start = document.getElementById("dailyStartTime").value;
+    const end = document.getElementById("dailyEndTime").value;
+    if (start && end) {
+      let startDate = new Date(`1970-01-01T${start}:00`);
+      let endDate = new Date(`1970-01-01T${end}:00`);
+      let diff = (endDate - startDate) / (1000 * 60 * 60);
+      if (diff < 0) diff += 24; // overnight shift
+      document.getElementById("dailyTotalHours").value = diff.toFixed(2);
+    }
+  }
+
+  document.getElementById("dailyStartTime").addEventListener("change", calculateDailyHours);
+  document.getElementById("dailyEndTime").addEventListener("change", calculateDailyHours);
+</script>
+
+
+<%- include('footer') %>

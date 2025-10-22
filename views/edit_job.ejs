@@ -1,0 +1,39 @@
+<%- include('home_page', { username: username }) %>
+
+<div class="container mt-5" style="max-width: 600px;">
+  <h2>Edit Job</h2>
+  <form action="/update-job" method="POST">
+    <input type="hidden" name="jobId" value="<%= job._id %>">
+
+    <div class="mb-3">
+      <label class="form-label">Job Name</label>
+      <input type="text" class="form-control" name="jobName" value="<%= job.jobName %>" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Date</label>
+      <input type="date" class="form-control" name="date" value="<%= job.date %>" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Salary Type</label>
+      <select class="form-select" name="salaryType" required>
+        <option value="Hourly" <%= job.salaryType === 'Hourly' ? 'selected' : '' %>>Hourly</option>
+        <option value="Weekly" <%= job.salaryType === 'Weekly' ? 'selected' : '' %>>Weekly</option>
+        <option value="Monthly" <%= job.salaryType === 'Monthly' ? 'selected' : '' %>>Monthly</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Salary Amount (€)</label>
+      <input type="number" class="form-control" name="salaryAmount" step="0.01" min="0" value="<%= job.salaryAmount %>" required>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <a href="/jobdata" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-success">Update</button>
+    </div>
+  </form>
+</div>
+
+<%- include('footer') %>

@@ -1,78 +1,116 @@
 <%- include('home_page', { username: username }) %>
 
+<!-- ===== Your Jobs Section ===== -->
 <div class="container mt-5">
   <h2>Your Jobs</h2>
   <% if (!jobs || jobs.length === 0) { %>
-    <p>No jobs added yet.</p>
+  <p>No jobs added yet.</p>
   <% } else { %>
-    <table class="table table-striped mt-3">
-      <thead>
-        <tr>
-          <th>Job Name</th>
-          <th>Date</th>
-          <th>Salary Type</th>
-          <th>Salary</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% jobs.forEach(job => { %>
-          <tr>
-            <td><%= job.jobName %></td>
-            <td><%= job.date %></td>
-            <td><%= job.salaryType %></td>
-            <td><%= job.salaryAmount %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
+  <table class="table table-striped mt-3 text-center align-middle">
+    <thead>
+      <tr>
+        <th>Job Name</th>
+        <th>Date</th>
+        <th>Salary Type</th>
+        <th>Salary (€)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% jobs.forEach(job => { %>
+      <tr data-id="<%= job._id %>">
+        <td><%= job.jobName %></td>
+        <td><%= job.date %></td>
+        <td><%= job.salaryType %></td>
+        <td><%= job.salaryAmount.toFixed(2) %></td>
+        <td>
+          <a
+            href="/edit-job/<%= job._id %>"
+            class="btn btn-sm btn-outline-primary"
+            >✏️</a
+          >
+          <form
+            action="/delete-job/<%= job._id %>"
+            method="POST"
+            style="display: inline"
+          >
+            <button
+              class="btn btn-sm btn-outline-danger"
+              onclick="return confirm('Delete this job?')"
+            >
+              🗑️
+            </button>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
   <% } %>
 </div>
-
+<!-- ===== Daily Jobs Section ===== -->
 <div class="container mt-5">
   <h2>Daily Jobs</h2>
   <% if (!daily_jobs || daily_jobs.length === 0) { %>
-    <p>No daily jobs added yet.</p>
-  <% } else { %>
-    <table class="table table-striped mt-3">
-      <thead>
-        <tr>
-          <th>Job Name</th>
-          <th>Date</th>
-          <th>Start Time</th>
-          <th>End Time</th>
-          <th>Total Hours</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% daily_jobs.forEach(job => { %>
-          <tr>
-            <td><%= job.jobName %></td>
-            <td><%= job.date %></td>
-            <td><%= job.startTime %></td>
-            <td><%= job.endTime %></td>
-            <td><%= job.totalHours %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
+  <p>No daily jobs added yet.</p>
+  <% } else { 
+       let totalCalculatedSalary = 0; // initialize total
+  %>
+  <table class="table table-striped mt-3 text-center align-middle">
+    <thead>
+      <tr>
+        <th>Job Name</th>
+        <th>Date</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Total Hours</th>
+        <th>Calculated Salary (€)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% daily_jobs.forEach(dailyJob => { 
+           const mainJob = jobs.find(j => j.jobName === dailyJob.jobName);
+           const rate = mainJob ? mainJob.salaryAmount : 0;
+           const calcSalary = Number((dailyJob.totalHours * rate).toFixed(2));
+           totalCalculatedSalary += calcSalary; // accumulate total
+      %>
+      <tr data-id="<%= dailyJob._id %>">
+        <td><%= dailyJob.jobName %></td>
+        <td><%= dailyJob.date %></td>
+        <td><%= dailyJob.startTime %></td>
+        <td><%= dailyJob.endTime %></td>
+        <td><%= dailyJob.totalHours %></td>
+        <td><%= calcSalary %></td>
+        <td>
+          <a href="/edit-daily-job/<%= dailyJob._id %>" class="btn btn-sm btn-outline-primary">✏️</a>
+          <form action="/delete-daily-job/<%= dailyJob._id %>" method="POST" style="display: inline">
+            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this daily job?')">🗑️</button>
+          </form>
+        </td>
+      </tr>
+      <% }) %>
+      <!-- Total Row -->
+      <<tr>
+  <th>Total Salary</th>
+  <th colspan="4"></th>
+  <th><%= totalCalculatedSalary.toFixed(2) %> €</th>
+  <th></th>
+  
+</tr>
+    </tbody>
+  </table>
   <% } %>
 </div>
 
-<!-- Bar Chart: Monthly Hours per Job
-<div class="container mt-5">
-  <h2>Monthly Hours per Job</h2>
-  <canvas id="jobHoursChart" width="800" height="200"></canvas>
-</div> -->
+<!-- ===== Charts Section ===== -->
 <div class="container mt-5">
   <div class="row">
-    <!-- Bar Chart: Monthly Hours per Job (Left) -->
-    <div class="col-md-6" style="max-width: 500px;">
+    <div class="col-md-6" style="max-width: 500px">
       <h2>Monthly Hours per Job</h2>
       <canvas id="jobHoursChart" height="250"></canvas>
     </div>
-
-    <!-- Pie Chart: Total Days per Job (Right) -->
-    <div class="col-md-6" style="max-width: 400px;">
+    <div class="col-md-6" style="max-width: 400px">
       <h2>Total Work Days per Job</h2>
       <canvas id="jobDaysPieChart" height="250"></canvas>
     </div>
@@ -81,58 +119,125 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // ===== Bar Chart =====
-  const chartData = JSON.parse('<%- chartData %>');
+  // ===== EDIT JOB =====
+  document.querySelectorAll(".edit-job-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const job = JSON.parse(btn.dataset.job);
+      document.getElementById("editJobForm").style.display = "block";
+      document
+        .getElementById("jobFormTitle")
+        .scrollIntoView({ behavior: "smooth" });
 
-  const months = [...new Set(Object.values(chartData).flatMap(obj => Object.keys(obj)))];
-  const jobNames = Object.keys(chartData);
-
-  const datasets = jobNames.map((job, idx) => {
-    const data = months.map(m => chartData[job][m] || 0);
-    return {
-      label: job,
-      data: data,
-      backgroundColor: `hsl(${idx * 50}, 70%, 60%)`
-    };
+      document.getElementById("jobId").value = job._id;
+      document.getElementById("jobName").value = job.jobName;
+      document.getElementById("date").value = job.date;
+      document.getElementById("salaryType").value = job.salaryType;
+      document.getElementById("salaryAmount").value = job.salaryAmount;
+    });
   });
 
-  const ctxBar = document.getElementById("jobHoursChart").getContext("2d");
-  new Chart(ctxBar, {
-    type: "bar",
-    data: {
-      labels: months,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: "top" } },
-      scales: { y: { beginAtZero: true } },
-      // thinner bars
-      barPercentage: 0.4,
-      categoryPercentage: 0.6
-    }
-  });
+  // ===== EDIT DAILY JOB =====
+  document.querySelectorAll(".edit-daily-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const job = JSON.parse(btn.dataset.job);
+      document.getElementById("editDailyForm").style.display = "block";
+      document
+        .getElementById("dailyFormTitle")
+        .scrollIntoView({ behavior: "smooth" });
 
-  // ===== Pie Chart =====
-  const totalDaysData = JSON.parse('<%- totalDaysData %>');
-  const labelsPie = Object.keys(totalDaysData);
-  const dataPie = Object.values(totalDaysData);
-
-  const ctxPie = document.getElementById('jobDaysPieChart').getContext('2d');
-  new Chart(ctxPie, {
-    type: 'pie',
-    data: {
-      labels: labelsPie,
-      datasets: [{
-        label: 'Total Days',
-        data: dataPie,
-        backgroundColor: labelsPie.map((_, idx) => `hsl(${idx * 60}, 70%, 60%)`)
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'top' } }
-    }
+      document.getElementById("dailyJobId").value = job._id;
+      document.getElementById("dailyJobName").value = job.jobName;
+      document.getElementById("dailyDate").value = job.date;
+      document.getElementById("dailyStartTime").value = job.startTime;
+      document.getElementById("dailyEndTime").value = job.endTime;
+      document.getElementById("dailyTotalHours").value = job.totalHours;
+    });
   });
 </script>
-   <%- include('footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // === Prepare data from EJS ===
+ 
+  // === Prepare data from EJS safely ===
+  const jobs = JSON.parse('<%- JSON.stringify(jobs) %>');
+  const dailyJobs = JSON.parse('<%- JSON.stringify(daily_jobs) %>');
+
+
+
+  // ====== Monthly Hours per Job (Bar Chart) ======
+  const jobHoursMap = {};
+
+  dailyJobs.forEach((job) => {
+    if (!jobHoursMap[job.jobName]) jobHoursMap[job.jobName] = 0;
+    jobHoursMap[job.jobName] += Number(job.totalHours || 0);
+  });
+
+  const jobNames = Object.keys(jobHoursMap);
+  const jobHours = Object.values(jobHoursMap);
+
+  if (jobNames.length > 0) {
+    new Chart(document.getElementById("jobHoursChart"), {
+      type: "bar",
+      data: {
+        labels: jobNames,
+        datasets: [
+          {
+            label: "Total Hours",
+            data: jobHours,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "Hours" },
+          },
+        },
+      },
+    });
+  }
+
+  // ====== Total Work Days per Job (Pie Chart) ======
+  const jobDaysMap = {};
+
+  dailyJobs.forEach((job) => {
+    if (!jobDaysMap[job.jobName]) jobDaysMap[job.jobName] = new Set();
+    jobDaysMap[job.jobName].add(job.date);
+  });
+
+  const jobDaysLabels = Object.keys(jobDaysMap);
+  const jobDaysValues = jobDaysLabels.map(
+    (name) => jobDaysMap[name].size
+  );
+
+  if (jobDaysLabels.length > 0) {
+    new Chart(document.getElementById("jobDaysPieChart"), {
+      type: "pie",
+      data: {
+        labels: jobDaysLabels,
+        datasets: [
+          {
+            data: jobDaysValues,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    });
+  }
+</script>
+
+<%- include('footer') %>
